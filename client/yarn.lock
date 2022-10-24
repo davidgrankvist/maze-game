@@ -781,6 +781,7 @@ __metadata:
     "@vitejs/plugin-react": ^2.1.0
     autoprefixer: ^10.4.12
     daisyui: ^2.33.0
+    kaboom: ^2000.2.9
     postcss: ^8.4.18
     react: ^18.2.0
     react-dom: ^18.2.0
@@ -1617,6 +1618,13 @@ __metadata:
   bin:
     json5: lib/cli.js
   checksum: 74b8a23b102a6f2bf2d224797ae553a75488b5adbaee9c9b6e5ab8b510a2fc6e38f876d4c77dea672d4014a44b2399e15f2051ac2b37b87f74c0c7602003543b
+  languageName: node
+  linkType: hard
+
+"kaboom@npm:^2000.2.9":
+  version: 2000.2.9
+  resolution: "kaboom@npm:2000.2.9"
+  checksum: 7eaa6a80a71a7fe0ded8a965113244bc474aa933fa7795473fe6ab8b32d79ff9da1c6087bb3bfbca048fb27bfbc16eaa31159b6b48cfd8967a93e3bed020053d
   languageName: node
   linkType: hard
 
