@@ -48,7 +48,7 @@ export function Room(): JSX.Element {
             </tr>
           </thead>
           <tbody>
-            {players.map(pl => <tr><td>{pl.name === playerName ? pl.name + " (you)" : pl.name}</td></tr>)}
+            {players.map(pl => <tr key={pl.name}><td>{pl.name === playerName ? pl.name + " (you)" : pl.name}</td></tr>)}
           </tbody>
         </table>
       </div>
