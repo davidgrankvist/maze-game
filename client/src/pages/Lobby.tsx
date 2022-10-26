@@ -1,43 +1,42 @@
 import { useNavigate } from "react-router";
-import { getPlayerName, getRoom, setPlayerName, setRoom } from "../common/localStorage";
+import { getPlayerName, setPlayerName } from "../common/localStorage";
 
 export function Lobby(): JSX.Element {
   const navigate = useNavigate();
+
   const handleSubmit: React.FormEventHandler = async (e) => {
     e.preventDefault();
     const form = e.target as any;
     const formData = new FormData(form);
-    // const isHost = Boolean(formData.get("is-host"));
-    // TODO post the data somewhere
     
     const playerName = String(formData.get("name"));
     setPlayerName(playerName);
 
-    const roomCode = formData.get("room") as string;
-    setRoom(roomCode);
+    // TODO get this in the backend response
+    const roomCode = "roomarino";
     navigate(`/room/${roomCode}`);
   };
   return (
-    <div className="flex justify-center">
-      <form onSubmit={handleSubmit} className="form-control">
-        <label className="input-group">
-          <span>Name</span>
-          <input name="name" type="text" required={true} placeholder="Your character name" className="input input-bordered" autoComplete="off" defaultValue={getPlayerName() ?? ""}/>
-        </label>
-        <label className="input-group mt-2">
-          <span>Room</span>
-          <input name="room" type="text" required={true} placeholder="The room code" className="input input-bordered" autoComplete="off" defaultValue={getRoom() ?? ""} />
-        </label>
-        <label className="label cursor-pointer">
-          <span className="label-text">Join room</span> 
-          <input type="radio" name="is-host" value="" className="radio checked:bg-blue-500" defaultChecked={true} />
-        </label>
-        <label className="label cursor-pointer">
-          <span className="label-text">Create room</span> 
-          <input type="radio" name="is-host" value="true" className="radio checked:bg-blue-500" />
-        </label>
-        <button type="submit" className="btn btn-primary">Done</button>
-      </form>
+    <div className="hero min-h-screen">
+      <div className="hero-content flex-col lg:flex-row-reverse">
+        <div className="text-center lg:text-left">
+          <h1 className="text-5xl font-bold">New game room</h1>
+          <p className="py-6">Here you can create a game room. When the room is created you will get a link for inviting more players.</p>
+        </div>
+        <form onSubmit={handleSubmit} className="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-200">
+          <div className="card-body">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Player name</span>
+              </label>
+              <input name="name" type="text" placeholder="Pick a name..." className="input input-bordered" required={true} defaultValue={getPlayerName() ?? ""} />
+            </div>
+            <div className="form-control mt-6">
+              <button type="submit" className="btn btn-primary">Create room</button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
