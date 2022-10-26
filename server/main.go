@@ -7,10 +7,13 @@ import (
     "github.com/gorilla/mux"
 
     "maze-game-server/api"
+    "maze-game-server/util"
 )
 
 func main() {
     fmt.Println("\n=== STARTING SERVER ===\n")
+
+    util.InitRandomSeed()
 
     r := mux.NewRouter()
 

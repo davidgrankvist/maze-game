@@ -6,24 +6,38 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"maze-game-server/core"
+	"maze-game-server/httpErrors"
+	"maze-game-server/svc"
 )
 
 type createRoomDto struct {
     PlayerName string `json:"playerName"`
+}
+
+type createRoomResponseDto struct {
     RoomCode string `json:"roomCode"`
 }
 
 func CreateRoom(w http.ResponseWriter, req *http.Request) {
-    var room createRoomDto
-    err := json.NewDecoder(req.Body).Decode(&room)
+    var createRoom createRoomDto
+    err := json.NewDecoder(req.Body).Decode(&createRoom)
     if err != nil {
         http.Error(w, "Bad body", 400)
         return
     }
+    room, err := svc.CreateRoom(createRoom.PlayerName)
+    if err != nil {
+        err := httpErrors.NewHttpErrorFromError(err)
+        http.Error(w, err.Message, err.Code)
+        return
+    }
+
+    roomResponse := createRoomResponseDto{
+        RoomCode: room.Code,
+    }
     w.WriteHeader(http.StatusCreated)
     w.Header().Add("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(&room)
+    json.NewEncoder(w).Encode(&roomResponse)
 }
 
 type joinRoomDto struct {
@@ -31,29 +45,38 @@ type joinRoomDto struct {
 }
 
 func JoinRoom(w http.ResponseWriter, req *http.Request) {
-    var room joinRoomDto
+    var joinRoom joinRoomDto
 
-    //vars := mux.Vars(req)
-    //roomCode := vars["roomCode"]
-
-    err := json.NewDecoder(req.Body).Decode(&room)
+    err := json.NewDecoder(req.Body).Decode(&joinRoom)
     if err != nil {
         http.Error(w, "Bad body", 400)
         return
     }
+
+    vars := mux.Vars(req)
+    roomCode := vars["roomCode"]
+
+    _, err = svc.JoinRoom(joinRoom.PlayerName, roomCode)
+    if err != nil {
+        err := httpErrors.NewHttpErrorFromError(err)
+        http.Error(w, err.Message, err.Code)
+        return
+    }
+
     w.WriteHeader(http.StatusCreated)
     w.Header().Add("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(&room)
+    json.NewEncoder(w).Encode(&joinRoom)
 }
 
 func GetRoom(w http.ResponseWriter, req *http.Request) {
     vars := mux.Vars(req)
     roomCode := vars["roomCode"]
 
-    room := core.Room{
-        Code: roomCode,
-        Host: "someperson",
-        Players: []core.Player{},
+    room, err := svc.GetRoom(roomCode)
+    if err != nil {
+        err := httpErrors.NewHttpErrorFromError(err)
+        http.Error(w, err.Message, err.Code)
+        return
     }
 
     w.Header().Add("Content-Type", "application/json")
