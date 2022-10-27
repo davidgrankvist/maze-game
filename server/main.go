@@ -22,6 +22,7 @@ func main() {
     s.HandleFunc("", api.CreateRoom).Methods("POST")
     s.HandleFunc("/{roomCode}/join", api.JoinRoom).Methods("POST")
     s.HandleFunc("/{roomCode}", api.GetRoom).Methods("GET")
+    s.HandleFunc("/{roomCode}/start", api.StartGame).Methods("POST")
 
     printRoutes(r)
 

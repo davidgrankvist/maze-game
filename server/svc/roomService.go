@@ -56,3 +56,19 @@ func GetRoom(roomCode string) (core.Room, error) {
     }
     return room, nil
 }
+
+func StartGame(roomCode string) (core.Room, error) {
+    room, exists := dummyStorage[roomCode]
+
+    if !exists {
+        return room, core.NewHttpError(404, "Room not found")
+    }
+    newRoom := core.Room{
+        Code: room.Code,
+        Host: room.Host,
+        Players: room.Players,
+        IsGameTime: true,
+    }
+    dummyStorage[roomCode] = newRoom
+    return room, nil
+}

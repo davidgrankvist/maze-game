@@ -83,3 +83,19 @@ func GetRoom(w http.ResponseWriter, req *http.Request) {
     json.NewEncoder(w).Encode(&room)
 }
 
+func StartGame(w http.ResponseWriter, req *http.Request) {
+    vars := mux.Vars(req)
+    roomCode := vars["roomCode"]
+
+    _, err := svc.StartGame(roomCode)
+    if err != nil {
+        err := core.NewHttpErrorFromError(err)
+        http.Error(w, err.Message, err.Code)
+        return
+    }
+
+    var emptyObject struct {}
+    w.WriteHeader(http.StatusCreated)
+    w.Header().Add("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(&emptyObject)
+}

@@ -6,4 +6,5 @@ export interface Room {
   code: string;
   host: string;
   players: Player[];
+  isGameTime: boolean;
 }

@@ -18,3 +18,7 @@ export function joinRoom(playerName: string, roomCode: string): Promise<JoinRoom
 export function getRoom(roomCode: string): Promise<Room> {
   return getJson<Room>(`rooms/${roomCode}`);
 }
+
+export function startGame(roomCode: string): Promise<{}> {
+  return postJson<{}>(`rooms/${roomCode}/start`, {});
+}
