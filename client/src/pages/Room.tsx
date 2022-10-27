@@ -1,24 +1,19 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { getRoom } from "../common/apiClients/roomApiClient";
 import { Room as RoomType } from "../common/gameTypes";
 import { getPlayerName } from "../common/localStorage";
-import { useInterval } from "../common/util/hooks";
+import { useAutoJoinRoom, usePollRoom } from "./room/roomHooks";
 
 export function Room(): JSX.Element {
   const navigate = useNavigate();
   const { roomCode } = useParams() as { roomCode: string};
   const playerName = getPlayerName() as string;
-  const [room, setRoom] = useState<RoomType>({ host: '', code: roomCode, players: [{ name: playerName }]});
+  const [room, setRoom] = useState<RoomType>({ host: '', code: roomCode, players: []});
   const isHost = room.host === playerName;
-  const isLoading = !room.host;
+  const isLoadingRoom = !room.host;
 
-  const fetchAndSetRoom = () => {
-    getRoom(roomCode as string)
-    .then(r => setRoom(r))
-    .catch(err => console.error(err))
-  };
-  useInterval(fetchAndSetRoom, 5000);
+  usePollRoom(roomCode, setRoom);
+  useAutoJoinRoom(room);
 
   const onInvite = async () => {
     await navigator.clipboard.writeText(window.location.href);
@@ -27,7 +22,7 @@ export function Room(): JSX.Element {
     // TODO call some api here to start the game
     navigate(`/game/${roomCode}`);
   };
-  if (isLoading) {
+  if (isLoadingRoom) {
     return <div />;
   }
   return (
