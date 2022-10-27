@@ -17,7 +17,7 @@ func main() {
 
     r := mux.NewRouter()
 
-    s := r.PathPrefix("/rooms").Headers("Content-Type", "application/json").Subrouter()
+    s := r.PathPrefix("/api/rooms").Headers("Content-Type", "application/json").Subrouter()
     s.HandleFunc("", api.CreateRoom).Methods("POST")
     s.HandleFunc("/{roomCode}/join", api.JoinRoom).Methods("POST")
     s.HandleFunc("/{roomCode}", api.GetRoom).Methods("GET")
