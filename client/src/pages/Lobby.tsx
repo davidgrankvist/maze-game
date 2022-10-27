@@ -2,11 +2,10 @@ import { useNavigate } from "react-router";
 import { createRoom } from "../common/apiClients/roomApiClient";
 import { getPlayerName } from "../common/localStorage";
 
-
 export function Lobby(): JSX.Element {
   const navigate = useNavigate();
 
-  const onCreateRoom: React.FormEventHandler = async () => {
+  const onCreateRoom = async () => {
     const playerName = getPlayerName() as string;
     try {
       const { roomCode } = await createRoom(playerName);

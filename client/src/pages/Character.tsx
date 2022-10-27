@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import { getPlayerName, setPlayerName } from "../common/localStorage";
 import { useQuery } from "../common/util/hooks";
 
-
 export function Character(): JSX.Element {
   const navigate = useNavigate();
   const query = useQuery();
