@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router";
 import { Room as RoomType } from "../common/gameTypes";
 import { getPlayerName } from "../common/localStorage";
 import { useAutoJoinRoom, usePollRoom } from "./room/roomHooks";
+import { RoomLoader } from "./room/RoomLoader";
 
 export function Room(): JSX.Element {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ export function Room(): JSX.Element {
   const [room, setRoom] = useState<RoomType>({ host: '', code: roomCode, players: []});
   const isHost = room.host === playerName;
   const isLoadingRoom = !room.host;
+  const hasJoined = room.players.find(pl => pl.name === playerName);
 
   usePollRoom(roomCode, setRoom);
   useAutoJoinRoom(room);
@@ -22,8 +24,8 @@ export function Room(): JSX.Element {
     // TODO call some api here to start the game
     navigate(`/game/${roomCode}`);
   };
-  if (isLoadingRoom) {
-    return <div />;
+  if (isLoadingRoom || !hasJoined) {
+    return <RoomLoader isHost={isHost} />
   }
   return (
     <div className="hero min-h-screen">
