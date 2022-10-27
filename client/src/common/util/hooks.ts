@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { useLocation } from "react-router";
 
 export function useInterval(callback: () => void, delay: number, enabled = true) {
   useEffect(() => {
@@ -9,4 +10,10 @@ export function useInterval(callback: () => void, delay: number, enabled = true)
     const id = setInterval(() => callback(), delay);
     return () => clearInterval(id);
   }, [delay, enabled])
+}
+
+export function useQuery() {
+  const { search } = useLocation();
+  return useMemo(() => new URLSearchParams(search), [search]);
+
 }

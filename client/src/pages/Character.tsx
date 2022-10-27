@@ -1,10 +1,12 @@
 
 import { useNavigate } from "react-router";
 import { getPlayerName, setPlayerName } from "../common/localStorage";
+import { useQuery } from "../common/util/hooks";
 
 
 export function Character(): JSX.Element {
   const navigate = useNavigate();
+  const query = useQuery();
 
   const handleSubmit: React.FormEventHandler = async (e) => {
     e.preventDefault();
@@ -14,7 +16,9 @@ export function Character(): JSX.Element {
     const playerName = String(formData.get("name"));
     setPlayerName(playerName);
 
-    navigate(`/lobby`);
+    const returnTo = query.get("returnTo");
+    const navTo = returnTo || "/lobby";
+    navigate(navTo);
   };
   return (
     <div className="hero min-h-screen">
