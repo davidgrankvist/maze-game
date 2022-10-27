@@ -1,13 +1,19 @@
 import { useNavigate } from "react-router";
+import { createRoom } from "../common/apiClients/roomApiClient";
+import { getPlayerName } from "../common/localStorage";
 
 
 export function Lobby(): JSX.Element {
   const navigate = useNavigate();
 
-  const onCreateRoom: React.FormEventHandler = () => {
-    // TODO get this in the backend response
-    const roomCode = "roomarino";
-    navigate(`/room/${roomCode}`);
+  const onCreateRoom: React.FormEventHandler = async () => {
+    const playerName = getPlayerName() as string;
+    try {
+      const { roomCode } = await createRoom(playerName);
+      navigate(`/room/${roomCode}`);
+    } catch (err) {
+      console.error(err);
+    }
   };
   return (
     <div className="hero min-h-screen">

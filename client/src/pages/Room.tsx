@@ -1,32 +1,35 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { getRoom } from "../common/apiClients/roomApiClient";
+import { Room as RoomType } from "../common/gameTypes";
 import { getPlayerName } from "../common/localStorage";
+import { useInterval } from "../common/util/hooks";
 
 export function Room(): JSX.Element {
   const navigate = useNavigate();
-  const { roomCode } = useParams();
-  const playerName = getPlayerName();
-  const [players, setPlayers] = useState([
-    {
-      name: 'bob',
-    },
-    {
-      name: 'alice',
-    },
-    {
-      name: playerName,
-    },
-  ]);
-  const [isHost] = useState(true);
+  const { roomCode } = useParams() as { roomCode: string};
+  const playerName = getPlayerName() as string;
+  const [room, setRoom] = useState<RoomType>({ host: '', code: roomCode, players: [{ name: playerName }]});
+  const isHost = room.host === playerName;
+  const isLoading = !room.host;
+
+  const fetchAndSetRoom = () => {
+    getRoom(roomCode as string)
+    .then(r => setRoom(r))
+    .catch(err => console.error(err))
+  };
+  useInterval(fetchAndSetRoom, 5000);
 
   const onInvite = async () => {
     await navigator.clipboard.writeText(window.location.href);
   }
   const onStartGame = () => {
-    // TODO call some api here to create the room
-
+    // TODO call some api here to start the game
     navigate(`/game/${roomCode}`);
   };
+  if (isLoading) {
+    return <div />;
+  }
   return (
     <div className="hero min-h-screen">
       <div className="hero-content text-center mb-60">
@@ -55,7 +58,7 @@ export function Room(): JSX.Element {
               </tr>
             </thead>
             <tbody>
-              {players.map(pl => <tr key={pl.name}><td>{pl.name === playerName ? pl.name + " (you)" : pl.name}</td></tr>)}
+              {room.players.map(pl => <tr key={pl.name}><td>{pl.name === playerName ? pl.name + " (you)" : pl.name}</td></tr>)}
             </tbody>
           </table>
           </div>
