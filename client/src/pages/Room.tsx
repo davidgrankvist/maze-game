@@ -36,7 +36,7 @@ export function Room(): JSX.Element {
     }
   };
   if (isLoadingRoom || !hasJoined) {
-    return <RoomLoader isHost={isHost} />
+    return <RoomLoader />
   }
   return (
     <div className="hero min-h-screen">
