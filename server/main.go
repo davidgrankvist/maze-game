@@ -8,13 +8,13 @@ import (
     "github.com/gorilla/handlers"
 
     "maze-game-server/api"
-    "maze-game-server/util"
+    "maze-game-server/core"
 )
 
 func main() {
     fmt.Println("\n=== STARTING SERVER ===\n")
 
-    util.InitRandomSeed()
+    core.InitRandomSeed()
 
     r := mux.NewRouter()
 

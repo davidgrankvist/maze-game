@@ -1,4 +1,4 @@
-package httpErrors
+package core
 
 type HttpError struct {
     Code int

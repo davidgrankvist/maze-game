@@ -2,15 +2,13 @@ package svc
 
 import (
 	"maze-game-server/core"
-	"maze-game-server/httpErrors"
-	"maze-game-server/util"
 )
 
 var dummyStorage = map[string]core.Room{}
 
 func CreateRoom(playerName string) (core.Room, error) {
     room := core.Room{
-        Code: util.RandomString(20),
+        Code: core.RandomString(20),
         Host: playerName,
         Players: []core.Player{
             { Name: playerName },
@@ -19,7 +17,7 @@ func CreateRoom(playerName string) (core.Room, error) {
 
     _, exists := dummyStorage[room.Code]
     if exists {
-        return room, httpErrors.NewHttpError(409, "Room already exists")
+        return room, core.NewHttpError(409, "Room already exists")
     }
 
     dummyStorage[room.Code] = room
@@ -30,12 +28,12 @@ func JoinRoom(playerName string, roomCode string) (core.Room, error) {
     room, exists := dummyStorage[roomCode]
 
     if !exists {
-        return room, httpErrors.NewHttpError(404, "Room not found")
+        return room, core.NewHttpError(404, "Room not found")
     }
 
     for _, pl := range room.Players {
         if pl.Name == playerName {
-            return room, httpErrors.NewHttpError(409, "Player name exists in room")
+            return room, core.NewHttpError(409, "Player name exists in room")
         }
     }
 
@@ -54,7 +52,7 @@ func GetRoom(roomCode string) (core.Room, error) {
     room, exists := dummyStorage[roomCode]
 
     if !exists {
-        return room, httpErrors.NewHttpError(404, "Room not found")
+        return room, core.NewHttpError(404, "Room not found")
     }
     return room, nil
 }

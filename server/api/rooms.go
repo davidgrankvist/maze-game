@@ -6,7 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"maze-game-server/httpErrors"
+	"maze-game-server/core"
 	"maze-game-server/svc"
 )
 
@@ -27,7 +27,7 @@ func CreateRoom(w http.ResponseWriter, req *http.Request) {
     }
     room, err := svc.CreateRoom(createRoom.PlayerName)
     if err != nil {
-        err := httpErrors.NewHttpErrorFromError(err)
+        err := core.NewHttpErrorFromError(err)
         http.Error(w, err.Message, err.Code)
         return
     }
@@ -58,7 +58,7 @@ func JoinRoom(w http.ResponseWriter, req *http.Request) {
 
     _, err = svc.JoinRoom(joinRoom.PlayerName, roomCode)
     if err != nil {
-        err := httpErrors.NewHttpErrorFromError(err)
+        err := core.NewHttpErrorFromError(err)
         http.Error(w, err.Message, err.Code)
         return
     }
@@ -74,7 +74,7 @@ func GetRoom(w http.ResponseWriter, req *http.Request) {
 
     room, err := svc.GetRoom(roomCode)
     if err != nil {
-        err := httpErrors.NewHttpErrorFromError(err)
+        err := core.NewHttpErrorFromError(err)
         http.Error(w, err.Message, err.Code)
         return
     }
