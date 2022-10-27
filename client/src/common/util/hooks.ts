@@ -1,13 +1,23 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useLocation } from "react-router";
 
-export function useInterval(callback: () => void, delay: number, enabled = true) {
+export function useInterval(callback: () => Promise<void>, delay: number, enabled = true) {
+  const savedCallback = useRef<typeof callback>();
+  useEffect(() => {
+    savedCallback.current = callback;
+  }, [callback])
+
   useEffect(() => {
     if (!enabled) {
       return;
     }
-    callback();
-    const id = setInterval(() => callback(), delay);
+
+    const tick = () => {
+      savedCallback.current?.();
+    }
+    tick();
+
+    const id = setInterval(tick, delay);
     return () => clearInterval(id);
   }, [delay, enabled])
 }

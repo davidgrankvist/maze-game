@@ -5,12 +5,10 @@ import { getPlayerName } from "../../common/localStorage";
 import { useInterval } from "../../common/util/hooks";
 
 export function usePollRoom(roomCode: string, setRoom: (r: Room) => void) {
-  const fetchAndSetRoom = () => {
-    getRoom(roomCode)
-    .then(r => setRoom(r))
-    .catch(err => console.error(err))
-  };
-  useInterval(fetchAndSetRoom, 5000);
+  useInterval(async () => {
+    const room = await getRoom(roomCode);
+    setRoom(room);
+  }, 5000);
 }
 
 export function useAutoJoinRoom(room: Room) {
