@@ -1,6 +1,6 @@
 import { isProd } from "../environment";
 
-const BASE_URL = isProd() ? "/api" : "localhost:8090/api";
+const BASE_URL = isProd() ? "/api" : "http://localhost:8090/api";
 
 const BASE_HEADERS = {
   "Content-Type": "application/json"

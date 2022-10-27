@@ -5,6 +5,7 @@ import (
     "net/http"
 
     "github.com/gorilla/mux"
+    "github.com/gorilla/handlers"
 
     "maze-game-server/api"
     "maze-game-server/util"
@@ -22,13 +23,15 @@ func main() {
     s.HandleFunc("/{roomCode}/join", api.JoinRoom).Methods("POST")
     s.HandleFunc("/{roomCode}", api.GetRoom).Methods("GET")
 
-    http.Handle("/", r)
-
     printRoutes(r)
 
-    fmt.Println("\nListening on port 8090\n")
+    credentials := handlers.AllowCredentials()
+    methods := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"})
+    origins := handlers.AllowedOrigins([]string{"*"})
+    headers := handlers.AllowedHeaders([]string{"Content-Type"})
 
-    http.ListenAndServe(":8090", nil)
+    fmt.Println("\nListening on port 8090\n")
+    http.ListenAndServe(":8090", handlers.CORS(credentials, methods, origins, headers)(r))
 }
 
 func printRoutes(r *mux.Router) {
