@@ -4,7 +4,7 @@ import (
 	"maze-game-server/core"
 )
 
-var dummyStorage = map[string]core.Room{}
+var roomStore = map[string]core.Room{}
 
 func CreateRoom(playerName string) (core.Room, error) {
     room := core.Room{
@@ -15,17 +15,17 @@ func CreateRoom(playerName string) (core.Room, error) {
         },
     }
 
-    _, exists := dummyStorage[room.Code]
+    _, exists := roomStore[room.Code]
     if exists {
         return room, core.NewHttpError(409, "Room already exists")
     }
 
-    dummyStorage[room.Code] = room
+    roomStore[room.Code] = room
     return room, nil
 }
 
 func JoinRoom(playerName string, roomCode string) (core.Room, error) {
-    room, exists := dummyStorage[roomCode]
+    room, exists := roomStore[roomCode]
 
     if !exists {
         return room, core.NewHttpError(404, "Room not found")
@@ -43,13 +43,13 @@ func JoinRoom(playerName string, roomCode string) (core.Room, error) {
         Host: room.Host,
         Players: newPlayers,
     }
-    dummyStorage[roomCode] = newRoom
+    roomStore[roomCode] = newRoom
 
     return room, nil
 }
 
 func GetRoom(roomCode string) (core.Room, error) {
-    room, exists := dummyStorage[roomCode]
+    room, exists := roomStore[roomCode]
 
     if !exists {
         return room, core.NewHttpError(404, "Room not found")
@@ -58,10 +58,15 @@ func GetRoom(roomCode string) (core.Room, error) {
 }
 
 func StartGame(roomCode string) (core.Room, error) {
-    room, exists := dummyStorage[roomCode]
+    room, exists := roomStore[roomCode]
 
     if !exists {
         return room, core.NewHttpError(404, "Room not found")
+    }
+
+    _, err := CreateGame(room)
+    if err != nil {
+        return room, err
     }
     newRoom := core.Room{
         Code: room.Code,
@@ -69,6 +74,6 @@ func StartGame(roomCode string) (core.Room, error) {
         Players: room.Players,
         IsGameTime: true,
     }
-    dummyStorage[roomCode] = newRoom
+    roomStore[roomCode] = newRoom
     return room, nil
 }

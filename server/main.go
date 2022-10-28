@@ -1,14 +1,15 @@
 package main
 
 import (
-    "fmt"
-    "net/http"
+	"fmt"
+	"net/http"
+	"strings"
 
-    "github.com/gorilla/mux"
-    "github.com/gorilla/handlers"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 
-    "maze-game-server/api"
-    "maze-game-server/core"
+	"maze-game-server/api"
+	"maze-game-server/core"
 )
 
 func main() {
@@ -23,6 +24,9 @@ func main() {
     s.HandleFunc("/{roomCode}/join", api.JoinRoom).Methods("POST")
     s.HandleFunc("/{roomCode}", api.GetRoom).Methods("GET")
     s.HandleFunc("/{roomCode}/start", api.StartGame).Methods("POST")
+
+    s = r.PathPrefix("/api/games/{gameCode}").Subrouter()
+    s.HandleFunc("/{playerName}/ws", api.GameWs)
 
     printRoutes(r)
 
@@ -40,6 +44,9 @@ func printRoutes(r *mux.Router) {
         tpl, _ := route.GetPathTemplate()
         met, _ := route.GetMethods()
         if len(met) == 0 {
+            if strings.Contains(tpl, "/ws") {
+                fmt.Println("WS", "\t", tpl)
+            }
             return nil
         }
         for _, m := range met {
