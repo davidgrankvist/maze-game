@@ -29,7 +29,7 @@ func NewHttpErrorWithLog(code int, message string, logMessage string) HttpError 
 func NewHttpErrorFromError(err error) HttpError {
     herr, ok := err.(HttpError)
     if !ok {
-        return NewHttpError(500, "Internal Server Error")
+        return NewHttpErrorWithLog(500, "Internal Server Error", err.Error())
     }
     return herr
 }
