@@ -44,12 +44,10 @@ type GameAction struct {
     Payload interface{} `json:"payload"`
 }
 
-func GetActionOrNoop(id GameActionId) GameAction {
-    action := GameAction{
-        Id: ACTION_NOOP,
-    }
-    if (id >= 0 && id < action_end) {
-        action.Id = id
-    }
-    return action
+func (action *GameAction) IsValid() bool {
+    return action.Id >= 0 && action.Id < action_end
+}
+
+func (action *GameAction) IsNoop() bool {
+    return action.Id == ACTION_NOOP || !action.IsValid()
 }

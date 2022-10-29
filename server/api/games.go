@@ -31,7 +31,9 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
             log.Print("Failed to read message: ", err.Error())
             break;
         }
-        action = core.GetActionOrNoop(action.Id)
+        if action.IsNoop() {
+            continue
+        }
         log.Printf("Incoming action: %+v", action)
         err = c.WriteJSON(&action)
         if err != nil {
