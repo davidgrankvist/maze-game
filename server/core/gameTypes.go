@@ -41,6 +41,7 @@ const (
 
 type GameAction struct {
     Id GameActionId `json:"id"`
+    Sender string `json:"sender"`
     Payload interface{} `json:"payload"`
 }
 

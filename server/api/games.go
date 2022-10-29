@@ -1,14 +1,20 @@
 package api
 
 import (
+    "fmt"
     "log"
     "maze-game-server/core"
+    "maze-game-server/svc"
     "net/http"
 
     "github.com/gorilla/mux"
     "github.com/gorilla/websocket"
 )
 var upgrader = websocket.Upgrader{}
+
+const (
+    TOPIC_ACTIONS = "game-actions"
+)
 
 func GameWs(w http.ResponseWriter, req *http.Request) {
     vars := mux.Vars(req)
@@ -21,10 +27,36 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
         log.Print("Failed to upgrade", err)
         return
     }
-    defer c.Close()
+    actionTopic := fmt.Sprintf("%s/%s", gameCode, TOPIC_ACTIONS)
+    subActions := svc.PS.Sub(playerName, actionTopic)
+    log.Printf("Player %s is subscripted to topic %s", subActions.Id, actionTopic)
+
+    defer func() {
+        c.Close()
+        svc.PS.Unsub(actionTopic, playerName)
+    }()
+
+    // receive messages from all players and push to WS of current player
+    go func () {
+        for msg := range subActions.Channel {
+            action, ok := msg.(core.GameAction)
+            if !ok {
+                continue
+            }
+            // TODO apply actions to game state here
+            err = c.WriteJSON(&action)
+            if err != nil {
+                log.Print("Failed to write message: ", err.Error())
+                break;
+            }
+        }
+    }()
+
+    // receive WS messages from current player and publish to all players
     for {
         action := core.GameAction{
             Id: core.ACTION_NOOP,
+            Sender: playerName,
         }
         err := c.ReadJSON(&action)
         if err != nil {
@@ -34,11 +66,6 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
         if action.IsNoop() {
             continue
         }
-        log.Printf("Incoming action: %+v", action)
-        err = c.WriteJSON(&action)
-        if err != nil {
-            log.Print("Failed to write message: ", err.Error())
-            break;
-        }
+        svc.PS.Pub(action, actionTopic)
     }
 }
