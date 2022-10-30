@@ -52,6 +52,11 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
                 continue
             }
 
+            // no need to echo back the user's own input
+            if action.Sender == playerName {
+                continue
+            }
+
             message := GameMessage{
                 Topic: TOPIC_ACTIONS,
                 Payload: action,
