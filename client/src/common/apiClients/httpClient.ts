@@ -1,8 +1,7 @@
-import { isProd } from "../environment";
 import { HttpError } from "./httpErrors";
+import { config } from '../config';
 
-const BASE_URL = isProd() ? "/api" : "http://localhost:8090/api";
-
+const { BASE_URL } = config;
 const BASE_HEADERS = {
   "Content-Type": "application/json"
 };

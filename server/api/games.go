@@ -10,11 +10,18 @@ import (
     "github.com/gorilla/mux"
     "github.com/gorilla/websocket"
 )
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{
+    CheckOrigin: func(r *http.Request) bool { return true },
+}
 
 const (
     TOPIC_ACTIONS = "game-actions"
 )
+
+type GameMessage struct {
+    Topic string `json:"topic"`
+    Payload core.GameAction `json:"payload"`
+}
 
 func GameWs(w http.ResponseWriter, req *http.Request) {
     vars := mux.Vars(req)
@@ -29,11 +36,11 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
     }
     actionTopic := fmt.Sprintf("%s/%s", gameCode, TOPIC_ACTIONS)
     subActions := svc.PS.Sub(playerName, actionTopic)
-    log.Printf("Player %s is subscripted to topic %s", subActions.Id, actionTopic)
 
     defer func() {
+        log.Printf("Closing connection for player %s in game %s", playerName, gameCode)
+        svc.PS.Unsub(playerName, actionTopic)
         c.Close()
-        svc.PS.Unsub(actionTopic, playerName)
     }()
 
     // receive messages from all players and push to WS of current player
@@ -41,12 +48,19 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
         for msg := range subActions.Channel {
             action, ok := msg.(core.GameAction)
             if !ok {
+                log.Printf("invalid action in %+v in channel loop. Skipping WS push", action)
                 continue
             }
+
+            message := GameMessage{
+                Topic: TOPIC_ACTIONS,
+                Payload: action,
+            }
+
             // TODO apply actions to game state here
-            err = c.WriteJSON(&action)
+            err = c.WriteJSON(&message)
             if err != nil {
-                log.Print("Failed to write message: ", err.Error())
+                log.Printf("player %s in game %s failed to write: %s", playerName, gameCode, err.Error())
                 break;
             }
         }
@@ -54,18 +68,24 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
 
     // receive WS messages from current player and publish to all players
     for {
-        action := core.GameAction{
-            Id: core.ACTION_NOOP,
-            Sender: playerName,
-        }
-        err := c.ReadJSON(&action)
+        message := GameMessage{}
+        err := c.ReadJSON(&message)
         if err != nil {
             log.Print("Failed to read message: ", err.Error())
             break;
         }
-        if action.IsNoop() {
+
+        if message.Topic != TOPIC_ACTIONS {
             continue
         }
+
+        action := message.Payload
+        if !action.IsValid() {
+            log.Printf("invalid action in game message loop %+v. Skipping publish", action)
+            continue
+        }
+
+        action.Sender = playerName
         svc.PS.Pub(action, actionTopic)
     }
 }

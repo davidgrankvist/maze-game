@@ -8,3 +8,28 @@ export interface Room {
   players: Player[];
   isGameTime: boolean;
 }
+
+export enum GameActionId {
+  MoveLeft = 1,
+  MoveRight,
+  MoveStop,
+  Jump,
+}
+export interface GameAction {
+  id: GameActionId;
+  sender: string;
+  payload?: any;
+}
+
+export interface Velocity {
+  x: number;
+  y: number;
+}
+
+export interface GamePlayer {
+  velocity: Velocity;
+}
+
+export interface GameState {
+  players: Record<string, GamePlayer>;
+}

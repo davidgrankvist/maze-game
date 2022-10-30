@@ -1,10 +1,20 @@
 import kaboom, { KaboomCtx } from "kaboom";
+import { GameWebsocketClient } from "../../common/apiClients/gameApiClient";
+import { GameActionId } from "../../common/gameTypes";
 
 interface GameOptions {
   canvas: HTMLCanvasElement;
+  socket: GameWebsocketClient;
 }
 
-export const initGame = ({ canvas }: GameOptions) => {
+export const initGame = ({ canvas, socket }: GameOptions) => {
+  socket.subscribeActions(action => {
+    // use this to make other players move
+  });
+  socket.subscribeGameState(gameState => {
+    // use this to check if positions need to be adjusted
+  });
+
   kaboom({
     canvas,
   });
@@ -21,6 +31,16 @@ export const initGame = ({ canvas }: GameOptions) => {
     area(),
     body(),
   ]);
+
+  onKeyPress("a", () => {
+    socket.publishActionById(GameActionId.MoveLeft);
+  });
+  onKeyPress("d", () => {
+    socket.publishActionById(GameActionId.MoveRight);
+  });
+  onKeyRelease(["a", "d"], () => {
+    socket.publishActionById(GameActionId.MoveStop);
+  });
 
   const SPEED = 400;
   onKeyPress("w", () => {
