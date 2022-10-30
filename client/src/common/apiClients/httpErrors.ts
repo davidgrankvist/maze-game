@@ -9,3 +9,7 @@ export class HttpError extends Error {
     this.stack = err?.stack;
   }
 }
+
+export function isHttpError(code: number, error: Error) {
+  return error instanceof HttpError && error.code === code;
+}

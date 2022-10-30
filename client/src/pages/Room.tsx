@@ -1,22 +1,25 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { startGame } from "../common/apiClients/roomApiClient";
+import { getRoom, startGame } from "../common/apiClients/roomApiClient";
 import { Room as RoomType } from "../common/gameTypes";
 import { getPlayerName } from "../common/localStorage";
-import { useAutoJoinRoom, usePollRoom } from "./room/roomHooks";
-import { RoomLoader } from "./room/RoomLoader";
+import { useInterval } from "../common/util/hooks";
 
-export function Room(): JSX.Element {
+interface RoomProps {
+  initialRoom: RoomType;
+}
+export function Room({ initialRoom }: RoomProps): JSX.Element {
   const navigate = useNavigate();
   const { roomCode } = useParams() as { roomCode: string};
   const playerName = getPlayerName() as string;
-  const [room, setRoom] = useState<RoomType>({ host: '', code: roomCode, players: [], isGameTime: false });
+  const [room, setRoom] = useState<RoomType>(initialRoom);
   const isHost = room.host === playerName;
-  const isLoadingRoom = !room.host;
-  const hasJoined = room.players.find(pl => pl.name === playerName);
 
-  usePollRoom(roomCode, setRoom);
-  useAutoJoinRoom(room);
+  useInterval(async () => {
+    const room = await getRoom(roomCode);
+    setRoom(room);
+  }, { delay: 5000, enabled: !initialRoom.isGameTime });
+
   useEffect(() => {
     if (!room.isGameTime) {
       return;
@@ -28,16 +31,9 @@ export function Room(): JSX.Element {
     await navigator.clipboard.writeText(window.location.href);
   }
   const onStartGame = async () => {
-    try {
       await startGame(roomCode);
       navigate(`/game/${roomCode}`);
-    } catch(err) {
-      console.error(err);
-    }
   };
-  if (isLoadingRoom || !hasJoined) {
-    return <RoomLoader />
-  }
   return (
     <div className="hero min-h-screen">
       <div className="hero-content text-center mb-60">

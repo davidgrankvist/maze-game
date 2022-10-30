@@ -7,12 +7,8 @@ export function Lobby(): JSX.Element {
 
   const onCreateRoom = async () => {
     const playerName = getPlayerName() as string;
-    try {
-      const { roomCode } = await createRoom(playerName);
-      navigate(`/room/${roomCode}`);
-    } catch (err) {
-      console.error(err);
-    }
+    const { roomCode } = await createRoom(playerName);
+    navigate(`/room/${roomCode}`);
   };
   return (
     <div className="hero min-h-screen">

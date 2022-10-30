@@ -1,10 +1,26 @@
 import { useEffect, useRef } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { GameWebsocketClient } from "../common/apiClients/gameApiClient";
+import { Room } from "../common/gameTypes";
 import { getPlayerName } from "../common/localStorage";
 import { initGame } from "./game/game";
 
-export function Game(): JSX.Element {
+interface GameProps {
+  initialRoom: Room;
+}
+function GameCheck({ initialRoom }: GameProps): JSX.Element {
+  const navigate = useNavigate();
+  const { roomCode } = useParams();
+  useEffect(() => {
+    if (!initialRoom.isGameTime) {
+      const navTo = `/room/${roomCode}`;
+      navigate(navTo);
+    }
+  }, [initialRoom.isGameTime]);
+
+  return initialRoom.isGameTime ? <GameCanvas /> : <div />;
+}
+function GameCanvas(): JSX.Element {
   const { roomCode } = useParams() as { roomCode: string};
   const playerName = getPlayerName() as string;
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -35,3 +51,5 @@ export function Game(): JSX.Element {
     </div>
   );
 }
+
+export { GameCheck as Game };

@@ -42,6 +42,7 @@ func JoinRoom(playerName string, roomCode string) (core.Room, error) {
         Code: room.Code,
         Host: room.Host,
         Players: newPlayers,
+        IsGameTime: room.IsGameTime,
     }
     roomStore[roomCode] = newRoom
 
