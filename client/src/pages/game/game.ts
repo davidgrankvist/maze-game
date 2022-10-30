@@ -1,6 +1,9 @@
 import kaboom, { KaboomCtx } from "kaboom";
 import { GameWebsocketClient } from "../../common/apiClients/gameApiClient";
 import { GameActionId } from "../../common/gameTypes";
+import { getPlayerName } from "../../common/localStorage";
+import { addPlayerToState, applyAction, getPlayerVelocity, hasJoined } from "./gameState";
+import { addOtherPlayerSprite } from "./players";
 
 interface GameOptions {
   canvas: HTMLCanvasElement;
@@ -8,12 +11,8 @@ interface GameOptions {
 }
 
 export const initGame = ({ canvas, socket }: GameOptions) => {
-  socket.subscribeActions(action => {
-    // use this to make other players move
-  });
-  socket.subscribeGameState(gameState => {
-    // use this to check if positions need to be adjusted
-  });
+  const playerName = getPlayerName() as string;
+  addPlayerToState(playerName);
 
   kaboom({
     canvas,
@@ -25,6 +24,19 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
   loadSprite("bean", "sprites/bean.png");
   loadSprite("steel", "sprites/steel.png");
 
+  socket.subscribeActions(action => {
+    if (!hasJoined(action.sender)) {
+      addPlayerToState(action.sender)
+      if (action.sender !== getPlayerName()) {
+        addOtherPlayerSprite(action.sender)
+      }
+    }
+    applyAction(action);
+  });
+  socket.subscribeGameState(gameState => {
+    // use this to check if positions need to be adjusted
+  });
+
   const player = add([
     sprite("bean"),
     pos(80, 40),
@@ -32,6 +44,11 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
     body(),
   ]);
 
+  onKeyPress("w", () => {
+    if (player.isGrounded()) {
+      socket.publishActionById(GameActionId.Jump);
+    }
+  });
   onKeyPress("a", () => {
     socket.publishActionById(GameActionId.MoveLeft);
   });

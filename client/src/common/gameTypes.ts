@@ -27,6 +27,7 @@ export interface Velocity {
 }
 
 export interface GamePlayer {
+  name: string;
   velocity: Velocity;
 }
 
