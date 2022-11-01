@@ -63,4 +63,13 @@ func (ps *PubSub) Pub(message interface{}, topic string) {
     }
 }
 
-var PS = NewPubSub()
+func (ps *PubSub) CloseAll() {
+   ps.mu.Lock()
+   defer ps.mu.Unlock()
+
+   for _, ss := range ps.subs {
+       for _, s := range ss {
+           s.Close()
+       }
+   }
+}

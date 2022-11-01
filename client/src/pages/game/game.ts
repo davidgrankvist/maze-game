@@ -2,7 +2,7 @@ import kaboom, { KaboomCtx } from "kaboom";
 import { GameWebsocketClient } from "../../common/apiClients/gameApiClient";
 import { GameActionId } from "../../common/gameTypes";
 import { getPlayerName } from "../../common/localStorage";
-import { addPlayerToState, applyAction, getPlayerVelocity, hasJoined } from "./gameState";
+import { addPlayerToState, newPlayersHaveJoined, PLAYER_SPEED, updateGameState, } from "./gameState";
 import { addOtherPlayerSprite } from "./players";
 
 interface GameOptions {
@@ -24,17 +24,14 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
   loadSprite("bean", "sprites/bean.png");
   loadSprite("steel", "sprites/steel.png");
 
-  socket.subscribeActions(action => {
-    if (!hasJoined(action.sender)) {
-      addPlayerToState(action.sender)
-      if (action.sender !== getPlayerName()) {
-        addOtherPlayerSprite(action.sender)
-      }
-    }
-    applyAction(action);
-  });
   socket.subscribeGameState(gameState => {
-    // use this to check if positions need to be adjusted
+    updateGameState(gameState);
+
+    if (newPlayersHaveJoined()) {
+      Object.keys(gameState.players).forEach(name => {
+        addOtherPlayerSprite(name)
+      });
+    }
   });
 
   const player = add([
@@ -42,6 +39,7 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
     pos(80, 40),
     area(),
     body(),
+    z(999),
   ]);
 
   onKeyPress("w", () => {
@@ -59,17 +57,16 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
     socket.publishActionById(GameActionId.MoveStop);
   });
 
-  const SPEED = 400;
   onKeyPress("w", () => {
     if (player.isGrounded()) {
       player.jump()
     }
   })
   onKeyDown("a", () => {
-    player.move(-SPEED, 0);
+    player.move(-PLAYER_SPEED, 0);
   })
   onKeyDown("d", () => {
-    player.move(SPEED, 0);
+    player.move(PLAYER_SPEED, 0);
   })
   player.onUpdate(() => {
     camPos(player.pos);

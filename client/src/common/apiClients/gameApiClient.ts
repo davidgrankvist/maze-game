@@ -53,16 +53,6 @@ export class GameWebsocketClient {
     this.publishAction({ id: actionId });
   }
 
-  subscribeActions(callback: (message: GameAction) => void) {
-    const newCallback = (evt: MessageEvent<any>) => {
-      const message = deserializeMessage(evt.data);
-      if (message.topic === GameTopic.Actions) {
-        callback(message.payload as GameAction);
-      }
-    };
-    this.socket.addEventListener("message", newCallback);
-    this.eventHandlers.push(newCallback);
-  }
   subscribeGameState(callback: (message: GameState) => void) {
     const newCallback = (evt: MessageEvent<any>) => {
       const message = deserializeMessage(evt.data);

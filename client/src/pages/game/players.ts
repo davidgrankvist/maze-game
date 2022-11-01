@@ -1,6 +1,12 @@
-import { getPlayerVelocity, isJumping, stopJumping } from "./gameState";
+import { getPlayerName } from "../../common/localStorage";
+import { getPlayerVelocity } from "./gameState";
+
+const hasSprite: Record<string, boolean> = {};
 
 export function addOtherPlayerSprite(playerName: string) {
+  if (hasSprite[playerName] || playerName === getPlayerName()) {
+    return;
+  }
   const player = add([
     sprite("bean"),
     pos(80, 40),
@@ -9,11 +15,7 @@ export function addOtherPlayerSprite(playerName: string) {
   ]);
   player.onUpdate(() => {
     const vel = getPlayerVelocity(playerName);
-    if (isJumping(playerName) && player.isGrounded()) {
-      player.jump()
-      stopJumping(playerName);
-    } else {
-      player.move(vel.x, vel.y);
-    }
+    player.move(vel.x, vel.y);
   });
+  hasSprite[playerName] = true;
 }

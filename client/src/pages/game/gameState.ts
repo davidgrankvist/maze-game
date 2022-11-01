@@ -1,9 +1,20 @@
-import { GameAction, GameActionId, GamePlayer, GameState, Velocity } from "../../common/gameTypes";
+import { GameState, Velocity } from "../../common/gameTypes";
 
-const PLAYER_SPEED = 400;
+export const PLAYER_SPEED = 400;
 
-const gameState: GameState = {
+let prevNumPlayers = 0
+let gameState: GameState = {
   players: {}
+}
+
+export function newPlayersHaveJoined() {
+  const currNumPlayers = Object.entries(gameState.players).length;
+  return currNumPlayers === prevNumPlayers;
+}
+
+export function updateGameState(state: GameState) {
+  prevNumPlayers =  Object.entries(gameState.players).length;
+  gameState = state;
 }
 
 export function hasJoined(playerName: string) {
@@ -22,36 +33,6 @@ export function getPlayerVelocity(playerName: string): Velocity {
   return player ? player.velocity : { x: 0, y: 0};
 }
 
-function updatePlayerState(player: GamePlayer) {
-  gameState.players[player.name] = player;
-}
-
 function initPlayer(playerName: string) {
   return { name: playerName, velocity: { x: 0, y: 0 }};
-}
-
-export function applyAction(action: GameAction) {
-  const prevVel = getPlayerVelocity(action.sender);
-  switch(+action.id) {
-    case GameActionId.MoveLeft:
-      updatePlayerState({ name: action.sender, velocity: { x: -PLAYER_SPEED, y: 0 }});
-      break;
-    case GameActionId.MoveRight:
-      updatePlayerState({ name: action.sender, velocity: { x: PLAYER_SPEED, y: 0 }});
-      break;
-    case GameActionId.MoveStop:
-      updatePlayerState({ name: action.sender, velocity: { x: 0, y: 0 }});
-      break;
-    case GameActionId.Jump:
-      // positive vertical velocity to indicate jump
-      updatePlayerState({ name: action.sender, velocity: { x: prevVel.x, y: 1 }});
-      break;
-  }
-}
-
-export function isJumping(playerName: string) {
-  return gameState.players[playerName].velocity.y > 0;
-}
-export function stopJumping(playerName: string) {
-  gameState.players[playerName].velocity.y = 0;
 }

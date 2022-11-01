@@ -1,7 +1,6 @@
 package api
 
 import (
-    "fmt"
     "log"
     "maze-game-server/core"
     "maze-game-server/svc"
@@ -10,19 +9,21 @@ import (
     "github.com/gorilla/mux"
     "github.com/gorilla/websocket"
 )
-var upgrader = websocket.Upgrader{
-    CheckOrigin: func(r *http.Request) bool { return true },
-}
 
-const (
-    TOPIC_ACTIONS = "game-actions"
-)
-
-type GameMessage struct {
+type ActionGameMessage struct {
     Topic string `json:"topic"`
     Payload core.GameAction `json:"payload"`
 }
 
+type GameStateMessage struct {
+    Topic string `json:"topic"`
+    Payload core.GameState `json:"payload"`
+}
+
+
+var upgrader = websocket.Upgrader{
+    CheckOrigin: func(r *http.Request) bool { return true },
+}
 func GameWs(w http.ResponseWriter, req *http.Request) {
     vars := mux.Vars(req)
     gameCode := vars["gameCode"]
@@ -34,35 +35,34 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
         log.Print("Failed to upgrade", err)
         return
     }
-    actionTopic := fmt.Sprintf("%s/%s", gameCode, TOPIC_ACTIONS)
-    subActions := svc.PS.Sub(playerName, actionTopic)
+
+    ps, err := svc.GetGamePubsub(gameCode)
+    if err != nil {
+        log.Print("Failed to get pubsub", err)
+    }
+
+    subGameState := ps.Sub(playerName, svc.TOPIC_GAME_STATE)
+
 
     defer func() {
         log.Printf("Closing connection for player %s in game %s", playerName, gameCode)
-        svc.PS.Unsub(playerName, actionTopic)
+        ps.Unsub(playerName, svc.TOPIC_GAME_STATE)
         c.Close()
     }()
 
-    // receive messages from all players and push to WS of current player
+    // receive messages from game state job and push to WS of current player
     go func () {
-        for msg := range subActions.Channel {
-            action, ok := msg.(core.GameAction)
+        for msg := range subGameState.Channel {
+            gameState, ok := msg.(core.GameState)
             if !ok {
-                log.Printf("invalid action in %+v in channel loop. Skipping WS push", action)
+                log.Printf("invalid game state in player channel loop %+v. Skipping WS push", gameState)
                 continue
             }
-
-            // no need to echo back the user's own input
-            if action.Sender == playerName {
-                continue
+            message := GameStateMessage{
+                Topic: svc.TOPIC_GAME_STATE,
+                Payload: gameState,
             }
 
-            message := GameMessage{
-                Topic: TOPIC_ACTIONS,
-                Payload: action,
-            }
-
-            // TODO apply actions to game state here
             err = c.WriteJSON(&message)
             if err != nil {
                 log.Printf("player %s in game %s failed to write: %s", playerName, gameCode, err.Error())
@@ -71,16 +71,16 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
         }
     }()
 
-    // receive WS messages from current player and publish to all players
+    // receive WS messages from current player and publish to game state job
     for {
-        message := GameMessage{}
+        message := ActionGameMessage{}
         err := c.ReadJSON(&message)
         if err != nil {
             log.Print("Failed to read message: ", err.Error())
             break;
         }
 
-        if message.Topic != TOPIC_ACTIONS {
+        if message.Topic != svc.TOPIC_ACTIONS {
             continue
         }
 
@@ -91,6 +91,6 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
         }
 
         action.Sender = playerName
-        svc.PS.Pub(action, actionTopic)
+        ps.Pub(action, svc.TOPIC_ACTIONS)
     }
 }

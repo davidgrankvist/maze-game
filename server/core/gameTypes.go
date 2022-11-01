@@ -1,14 +1,23 @@
 package core
 
-type Velocity struct {
+type Vec2 struct {
     X int `json:"x"`
     Y int `json:"y"`
 }
 
-type GamePlayer struct {
-    Name string `json:"name"`
-    Velocity Velocity `json:"position"`
+func NewVec2(x int, y int) Vec2 {
+    return Vec2{
+        X: x,
+        Y: y,
+    }
 }
+
+type GamePlayer struct {
+    Position Vec2 `json:"position"`
+    Velocity Vec2 `json:"velocity"`
+}
+
+const PLAYER_SPEED = 400
 
 type Tile int
 
