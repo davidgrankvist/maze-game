@@ -2,8 +2,8 @@ import kaboom, { KaboomCtx } from "kaboom";
 import { GameWebsocketClient } from "../../common/apiClients/gameApiClient";
 import { GameActionId } from "../../common/gameTypes";
 import { getPlayerName } from "../../common/localStorage";
-import { getPlayerState, newPlayersHaveJoined, PLAYER_SPEED, updateGameState, } from "./gameState";
-import { addOtherPlayerSprite } from "./players";
+import { getPlayerState, newPlayersHaveJoined, updateGameState, } from "./gameState";
+import { addOtherPlayerSprite, adjustPosition } from "./players";
 
 interface GameOptions {
   canvas: HTMLCanvasElement;
@@ -62,20 +62,10 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
   onKeyRelease("d", () => {
     socket.publishActionById(GameActionId.MoveRightStop);
   });
-
-  onKeyDown("w", () => {
-    player.move(0, -PLAYER_SPEED);
-  })
-  onKeyDown("a", () => {
-    player.move(-PLAYER_SPEED, 0);
-  })
-  onKeyDown("s", () => {
-    player.move(0, PLAYER_SPEED);
-  })
-  onKeyDown("d", () => {
-    player.move(PLAYER_SPEED, 0);
-  })
   player.onUpdate(() => {
+    const { position, velocity } = getPlayerState(getPlayerName() as string);
+    adjustPosition(player, position);
+    player.move(velocity.x, velocity.y);
     camPos(player.pos);
   });
 

@@ -1,6 +1,6 @@
-import { GamePlayer, GameState } from "../../common/gameTypes";
+import { GamePlayer, GameState, Vec2 } from "../../common/gameTypes";
 
-export const PLAYER_SPEED = 400;
+export const POSITION_TOLERANCE = 100;
 
 let prevNumPlayers = 0
 let gameState: GameState = {
@@ -28,4 +28,10 @@ export function getPlayerState(playerName: string): GamePlayer {
     position: defaultVec2,
     velocity: defaultVec2,
   }
+}
+
+export function distance(first: Vec2, second: Vec2) {
+  const dx = first.x - second.x;
+  const dy = first.y - second.y;
+  return Math.sqrt(dx * dx + dy * dy);
 }
