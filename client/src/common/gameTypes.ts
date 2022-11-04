@@ -12,8 +12,12 @@ export interface Room {
 export enum GameActionId {
   MoveLeft = 1,
   MoveRight,
-  MoveStop,
-  Jump,
+  MoveUp,
+  MoveDown,
+  MoveLeftStop,
+  MoveRightStop,
+  MoveUpStop,
+  MoveDownStop,
 }
 export interface GameAction {
   id: GameActionId;
@@ -27,7 +31,6 @@ export interface Velocity {
 }
 
 export interface GamePlayer {
-  name: string;
   velocity: Velocity;
 }
 

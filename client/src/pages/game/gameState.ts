@@ -9,7 +9,7 @@ let gameState: GameState = {
 
 export function newPlayersHaveJoined() {
   const currNumPlayers = Object.entries(gameState.players).length;
-  return currNumPlayers === prevNumPlayers;
+  return currNumPlayers !== prevNumPlayers;
 }
 
 export function updateGameState(state: GameState) {
@@ -21,18 +21,7 @@ export function hasJoined(playerName: string) {
   return !!gameState.players[playerName];
 }
 
-export function addPlayerToState(playerName: string) {
-  if (hasJoined(playerName)) {
-    return;
-  }
-  gameState.players[playerName] = initPlayer(playerName);
-}
-
 export function getPlayerVelocity(playerName: string): Velocity {
   const player = gameState.players[playerName];
   return player ? player.velocity : { x: 0, y: 0};
-}
-
-function initPlayer(playerName: string) {
-  return { name: playerName, velocity: { x: 0, y: 0 }};
 }

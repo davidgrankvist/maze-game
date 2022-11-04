@@ -2,7 +2,7 @@ import kaboom, { KaboomCtx } from "kaboom";
 import { GameWebsocketClient } from "../../common/apiClients/gameApiClient";
 import { GameActionId } from "../../common/gameTypes";
 import { getPlayerName } from "../../common/localStorage";
-import { addPlayerToState, newPlayersHaveJoined, PLAYER_SPEED, updateGameState, } from "./gameState";
+import { getPlayerVelocity, newPlayersHaveJoined, PLAYER_SPEED, updateGameState, } from "./gameState";
 import { addOtherPlayerSprite } from "./players";
 
 interface GameOptions {
@@ -11,9 +11,6 @@ interface GameOptions {
 }
 
 export const initGame = ({ canvas, socket }: GameOptions) => {
-  const playerName = getPlayerName() as string;
-  addPlayerToState(playerName);
-
   kaboom({
     canvas,
   });
@@ -38,32 +35,42 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
     sprite("bean"),
     pos(80, 40),
     area(),
-    body(),
     z(999),
   ]);
 
   onKeyPress("w", () => {
-    if (player.isGrounded()) {
-      socket.publishActionById(GameActionId.Jump);
-    }
+    socket.publishActionById(GameActionId.MoveUp);
   });
   onKeyPress("a", () => {
     socket.publishActionById(GameActionId.MoveLeft);
   });
+  onKeyPress("s", () => {
+    socket.publishActionById(GameActionId.MoveDown);
+  });
   onKeyPress("d", () => {
     socket.publishActionById(GameActionId.MoveRight);
   });
-  onKeyRelease(["a", "d"], () => {
-    socket.publishActionById(GameActionId.MoveStop);
+  onKeyRelease("w", () => {
+    socket.publishActionById(GameActionId.MoveUpStop);
+  });
+  onKeyRelease("a", () => {
+    socket.publishActionById(GameActionId.MoveLeftStop);
+  });
+  onKeyRelease("s", () => {
+    socket.publishActionById(GameActionId.MoveDownStop);
+  });
+  onKeyRelease("d", () => {
+    socket.publishActionById(GameActionId.MoveRightStop);
   });
 
-  onKeyPress("w", () => {
-    if (player.isGrounded()) {
-      player.jump()
-    }
+  onKeyDown("w", () => {
+    player.move(0, -PLAYER_SPEED);
   })
   onKeyDown("a", () => {
     player.move(-PLAYER_SPEED, 0);
+  })
+  onKeyDown("s", () => {
+    player.move(0, PLAYER_SPEED);
   })
   onKeyDown("d", () => {
     player.move(PLAYER_SPEED, 0);
@@ -83,13 +90,14 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
     "                      =    ",
     "     ==  ==============    ",
     "     ==                    ",
-], {
+  ], {
     width: 64,
     height: 64,
     "=": () => [
         sprite("steel"),
         area(),
         solid(),
+        "block"
     ],
-})
+  })
 }

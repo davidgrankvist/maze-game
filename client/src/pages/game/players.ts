@@ -11,7 +11,6 @@ export function addOtherPlayerSprite(playerName: string) {
     sprite("bean"),
     pos(80, 40),
     area(),
-    body(),
   ]);
   player.onUpdate(() => {
     const vel = getPlayerVelocity(playerName);

@@ -93,14 +93,25 @@ func gameStateJob(gameCode string) {
 
 func applyAction(action core.GameAction, gameCode string) {
     prevState := gameStateStore[gameCode].Players[action.Sender]
+    vPrev := prevState.Velocity;
     vNext := prevState.Velocity
     switch(action.Id) {
     case core.ACTION_MOVE_LEFT:
-        vNext = core.NewVec2(-core.PLAYER_SPEED, 0)
+        vNext = core.NewVec2(-core.PLAYER_SPEED, vPrev.Y)
     case core.ACTION_MOVE_RIGHT:
-        vNext = core.NewVec2(core.PLAYER_SPEED, 0)
-    case core.ACTION_MOVE_STOP:
-        vNext = core.NewVec2(0, 0)
+        vNext = core.NewVec2(core.PLAYER_SPEED, vPrev.Y)
+    case core.ACTION_MOVE_UP:
+        vNext = core.NewVec2(vPrev.X, -core.PLAYER_SPEED)
+    case core.ACTION_MOVE_DOWN:
+        vNext = core.NewVec2(vPrev.X, core.PLAYER_SPEED)
+    case core.ACTION_MOVE_LEFT_STOP:
+        vNext = core.NewVec2(0, vPrev.Y)
+    case core.ACTION_MOVE_RIGHT_STOP:
+        vNext = core.NewVec2(0, vPrev.Y)
+    case core.ACTION_MOVE_UP_STOP:
+        vNext = core.NewVec2(vPrev.X, 0)
+    case core.ACTION_MOVE_DOWN_STOP:
+        vNext = core.NewVec2(vPrev.X, 0)
     }
     gameStateStore[gameCode].Players[action.Sender] = core.GamePlayer{
         Position: prevState.Position,
