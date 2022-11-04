@@ -2,7 +2,7 @@ import kaboom, { KaboomCtx } from "kaboom";
 import { GameWebsocketClient } from "../../common/apiClients/gameApiClient";
 import { GameActionId } from "../../common/gameTypes";
 import { getPlayerName } from "../../common/localStorage";
-import { getPlayerVelocity, newPlayersHaveJoined, PLAYER_SPEED, updateGameState, } from "./gameState";
+import { getPlayerState, newPlayersHaveJoined, PLAYER_SPEED, updateGameState, } from "./gameState";
 import { addOtherPlayerSprite } from "./players";
 
 interface GameOptions {
@@ -33,7 +33,7 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
 
   const player = add([
     sprite("bean"),
-    pos(80, 40),
+    pos(0, 0),
     area(),
     z(999),
   ]);

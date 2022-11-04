@@ -25,13 +25,14 @@ export interface GameAction {
   payload?: any;
 }
 
-export interface Velocity {
+export interface Vec2 {
   x: number;
   y: number;
 }
 
 export interface GamePlayer {
-  velocity: Velocity;
+  position: Vec2;
+  velocity: Vec2;
 }
 
 export interface GameState {

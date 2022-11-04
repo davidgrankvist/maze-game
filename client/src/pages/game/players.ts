@@ -1,5 +1,5 @@
 import { getPlayerName } from "../../common/localStorage";
-import { getPlayerVelocity } from "./gameState";
+import { getPlayerState } from "./gameState";
 
 const hasSprite: Record<string, boolean> = {};
 
@@ -9,12 +9,12 @@ export function addOtherPlayerSprite(playerName: string) {
   }
   const player = add([
     sprite("bean"),
-    pos(80, 40),
+    pos(0, 0),
     area(),
   ]);
   player.onUpdate(() => {
-    const vel = getPlayerVelocity(playerName);
-    player.move(vel.x, vel.y);
+    const { position, velocity } = getPlayerState(playerName);
+    player.move(velocity.x, velocity.y);
   });
   hasSprite[playerName] = true;
 }

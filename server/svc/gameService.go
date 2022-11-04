@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"maze-game-server/core"
+	"time"
 )
 
 var gameStore = map[string]core.Game{}
@@ -15,6 +16,9 @@ const (
     TOPIC_ACTIONS = "game-actions"
     TOPIC_GAME_STATE = "game-state"
     PUBLISHER_GAME_STATE = "game-state-publisher"
+    TIME_OUT_SECONDS = 30
+    TICK_MS = 100
+    TICKS_PER_SECOND = 10
 )
 
 func CreateGame(room core.Room) (core.Game, error) {
@@ -41,16 +45,7 @@ func newGameState(room core.Room) core.GameState {
         Players: players,
     }
     for _, pl := range room.Players {
-        gameState.Players[pl.Name] = core.GamePlayer{
-           Position: core.Vec2{
-               X: 0,
-               Y: 0,
-           },
-           Velocity: core.Vec2{
-               X: 0,
-               Y: 0,
-           },
-       }
+        gameState.Players[pl.Name] = core.NewGamePlayer()
     }
     return gameState
 }
@@ -69,25 +64,75 @@ func gameStateJob(gameCode string) {
     subActions := ps.Sub(PUBLISHER_GAME_STATE, TOPIC_ACTIONS)
     pubsubs[gameCode] = ps
 
+    ticker := time.NewTicker(TICK_MS * time.Millisecond)
+    pendingActions := []core.GameAction{}
     defer func() {
         log.Printf("Stopping job for game %s", gameCode)
-        ps.CloseAll()
-        delete(pubsubs, gameCode)
+        ps.Unsub(PUBLISHER_GAME_STATE, TOPIC_ACTIONS)
+        ticker.Stop()
     }()
 
-    /* TODO:
-     *  - break loop if no actions are received for a while
-     *  - process in batches and sort by game tick
-     */
-    for msg := range subActions.Channel {
-        action, ok := msg.(core.GameAction)
-        if !ok {
-            log.Printf("invalid action %+v in game state loop. Skipping update", action)
+    latestActionTime := time.Now()
+    for {
+       t := time.Now()
+       if t.Sub(latestActionTime) > TIME_OUT_SECONDS * time.Second {
+           log.Printf("Game %s timed out. Stopping ticker", gameCode)
+           break;
+       }
+
+       select {
+       case msg := <- subActions.Channel:
+           action, ok := msg.(core.GameAction)
+           if !ok {
+               log.Printf("invalid action %+v in game state loop. Skipping update", action)
+               continue
+           }
+           pendingActions = append(pendingActions, action)
+
+           latestActionTime = time.Now()
+       case <- ticker.C:
+           simulateMovement(gameCode)
+           applyActions(pendingActions, gameCode)
+           pendingActions = nil
+
+           gameState := gameStateStore[gameCode]
+           ps.Pub(gameState, TOPIC_GAME_STATE)
+       }
+    }
+}
+
+func simulateMovement(gameCode string) {
+    prevState := gameStateStore[gameCode]
+    newState := core.GameState{
+        Players: map[string]core.GamePlayer{},
+    }
+
+    for playerName, playerState := range prevState.Players {
+        if len(playerName) == 0 {
+            continue
+        }
+        prevPos := playerState.Position
+        prevVel := playerState.Velocity
+
+        dx := prevVel.X / TICKS_PER_SECOND
+        dy := prevVel.Y / TICKS_PER_SECOND
+        newPos := core.NewVec2(prevPos.X + dx, prevPos.Y + dy)
+
+        newState.Players[playerName] = core.GamePlayer{
+            Velocity: prevVel,
+            Position: newPos,
+        }
+    }
+
+    gameStateStore[gameCode] = newState
+}
+
+func applyActions(actions []core.GameAction, gameCode string) {
+    for _, action := range actions {
+        if len(action.Sender) == 0 {
             continue
         }
         applyAction(action, gameCode)
-        gameState := gameStateStore[gameCode]
-        ps.Pub(gameState, TOPIC_GAME_STATE)
     }
 }
 

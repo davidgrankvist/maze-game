@@ -17,6 +17,13 @@ type GamePlayer struct {
     Velocity Vec2 `json:"velocity"`
 }
 
+func NewGamePlayer() GamePlayer {
+    return GamePlayer{
+        Position: NewVec2(0, 0),
+        Velocity: NewVec2(0, 0),
+    }
+}
+
 const PLAYER_SPEED = 400
 
 type Tile int

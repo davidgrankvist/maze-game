@@ -1,4 +1,4 @@
-import { GameState, Velocity } from "../../common/gameTypes";
+import { GamePlayer, GameState } from "../../common/gameTypes";
 
 export const PLAYER_SPEED = 400;
 
@@ -21,7 +21,11 @@ export function hasJoined(playerName: string) {
   return !!gameState.players[playerName];
 }
 
-export function getPlayerVelocity(playerName: string): Velocity {
+export function getPlayerState(playerName: string): GamePlayer {
   const player = gameState.players[playerName];
-  return player ? player.velocity : { x: 0, y: 0};
+  const defaultVec2 = { x: 0, y: 0};
+  return player || {
+    position: defaultVec2,
+    velocity: defaultVec2,
+  }
 }
