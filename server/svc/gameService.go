@@ -16,7 +16,7 @@ const (
     TOPIC_ACTIONS = "game-actions"
     TOPIC_GAME_STATE = "game-state"
     PUBLISHER_GAME_STATE = "game-state-publisher"
-    TIME_OUT_SECONDS = 30
+    GAME_TIME_OUT_SECONDS = 30
     TICK_MS = 100
     TICKS_PER_SECOND = 10
 )
@@ -29,7 +29,9 @@ func CreateGame(room core.Room) (core.Game, error) {
         return game, core.NewHttpError(409, "Game already exists")
     }
 
-    game = core.Game{}
+    game = core.Game{
+       GameMap: NewGameMap(DEFAULT_SMAP),
+    }
     gameStore[gameCode] = game
 
     gameStateStore[gameCode] = newGameState(room)
@@ -87,7 +89,7 @@ func gameStateJob(gameCode string) {
     latestActionTime := time.Now()
     for {
        t := time.Now()
-       if t.Sub(latestActionTime) > TIME_OUT_SECONDS * time.Second {
+       if t.Sub(latestActionTime) > GAME_TIME_OUT_SECONDS * time.Second {
            log.Printf("Game %s timed out. Stopping ticker", gameCode)
            break;
        }
@@ -114,6 +116,7 @@ func gameStateJob(gameCode string) {
 }
 
 func simulateMovement(gameCode string) {
+    game := gameStore[gameCode]
     prevState := gameStateStore[gameCode]
     newState := core.GameState{
         Players: map[string]core.GamePlayer{},
@@ -129,10 +132,11 @@ func simulateMovement(gameCode string) {
         dx := prevVel.X / TICKS_PER_SECOND
         dy := prevVel.Y / TICKS_PER_SECOND
         newPos := core.NewVec2(prevPos.X + dx, prevPos.Y + dy)
+        cappedPos := CapPosition(playerState, newPos, &game.GameMap)
 
         newState.Players[playerName] = core.GamePlayer{
             Velocity: prevVel,
-            Position: newPos,
+            Position: cappedPos,
         }
     }
 

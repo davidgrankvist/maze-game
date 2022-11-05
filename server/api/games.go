@@ -78,7 +78,7 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
 
     // receive WS messages from current player and publish to game state job
     for {
-        c.SetReadDeadline(time.Now().Add(time.Second * svc.TIME_OUT_SECONDS))
+        c.SetReadDeadline(time.Now().Add(time.Second * 2 * svc.GAME_TIME_OUT_SECONDS))
 
         message := ActionGameMessage{}
         err := c.ReadJSON(&message)

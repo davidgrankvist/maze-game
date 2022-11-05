@@ -35,6 +35,7 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
     sprite("bean"),
     pos(0, 0),
     area(),
+    solid(),
     z(999),
   ]);
 
