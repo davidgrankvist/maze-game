@@ -69,6 +69,23 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
     player.move(velocity.x, velocity.y);
     camPos(player.pos);
   });
+  player.onCollide("block", (_obj, col) => {
+    if (!col) {
+      return;
+    }
+    if (col.isTop()) {
+      socket.publishActionById(GameActionId.MoveUpStop)
+    }
+    if (col.isBottom()) {
+      socket.publishActionById(GameActionId.MoveDownStop)
+    }
+    if (col.isLeft()) {
+      socket.publishActionById(GameActionId.MoveLeftStop)
+    }
+    if (col.isRight()) {
+      socket.publishActionById(GameActionId.MoveRightStop)
+    }
+  });
 
   addLevel([
     "                           ",
