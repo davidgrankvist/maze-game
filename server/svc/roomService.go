@@ -78,3 +78,10 @@ func StartGame(roomCode string) (core.Room, error) {
     roomStore[roomCode] = newRoom
     return room, nil
 }
+
+func DeleteRoom(roomCode string) {
+    _, exists := roomStore[roomCode]
+    if exists {
+        delete(roomStore, roomCode)
+    }
+}

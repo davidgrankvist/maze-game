@@ -17,7 +17,7 @@ type PubSub struct {
     subs map[string][]Subscriber
 }
 
-func NewSubscriber(subId string) Subscriber {
+func newSubscriber(subId string) Subscriber {
     return Subscriber{
         Id: subId,
         Channel: make(chan interface{}),
@@ -34,7 +34,7 @@ func (ps *PubSub) Sub(subId string, topic string) Subscriber {
    ps.mu.Lock()
    defer ps.mu.Unlock()
 
-   sub := NewSubscriber(subId)
+   sub := newSubscriber(subId)
    ps.subs[topic] = append(ps.subs[topic], sub)
    return sub
 }
@@ -61,15 +61,4 @@ func (ps *PubSub) Pub(message interface{}, topic string) {
     for _, sub := range ps.subs[topic] {
         sub.Channel <- message
     }
-}
-
-func (ps *PubSub) CloseAll() {
-   ps.mu.Lock()
-   defer ps.mu.Unlock()
-
-   for _, ss := range ps.subs {
-       for _, s := range ss {
-           s.Close()
-       }
-   }
 }

@@ -5,6 +5,7 @@ import (
     "maze-game-server/core"
     "maze-game-server/svc"
     "net/http"
+    "time"
 
     "github.com/gorilla/mux"
     "github.com/gorilla/websocket"
@@ -29,6 +30,11 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
     gameCode := vars["gameCode"]
     playerName := vars["playerName"]
 
+    _, err := svc.GetGame(gameCode)
+    if err != nil {
+        return
+    }
+
     log.Printf("Starting websocket for player %s in game %s", playerName, gameCode)
     c, err := upgrader.Upgrade(w, req, nil)
     if err != nil {
@@ -39,11 +45,10 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
     ps, err := svc.GetGamePubsub(gameCode)
     if err != nil {
         log.Print("Failed to get pubsub", err)
+        return
     }
 
     subGameState := ps.Sub(playerName, svc.TOPIC_GAME_STATE)
-
-
     defer func() {
         log.Printf("Closing connection for player %s in game %s", playerName, gameCode)
         ps.Unsub(playerName, svc.TOPIC_GAME_STATE)
@@ -73,10 +78,12 @@ func GameWs(w http.ResponseWriter, req *http.Request) {
 
     // receive WS messages from current player and publish to game state job
     for {
+        c.SetReadDeadline(time.Now().Add(time.Second * svc.TIME_OUT_SECONDS))
+
         message := ActionGameMessage{}
         err := c.ReadJSON(&message)
         if err != nil {
-            log.Print("Failed to read message: ", err.Error())
+            log.Printf("Failed to read message from player %s in game %s: %s", playerName, gameCode, err.Error())
             break;
         }
 

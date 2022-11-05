@@ -50,6 +50,14 @@ func newGameState(room core.Room) core.GameState {
     return gameState
 }
 
+func GetGame(gameCode string) (game core.Game, err error) {
+    game, ok := gameStore[gameCode]
+    if !ok {
+        err = core.NewHttpError(404, "Game not found")
+    }
+    return game, err
+}
+
 func GetGamePubsub(gameCode string) (ps *PubSub, err error) {
     ps, ok := pubsubs[gameCode]
     if !ok {
@@ -68,8 +76,12 @@ func gameStateJob(gameCode string) {
     pendingActions := []core.GameAction{}
     defer func() {
         log.Printf("Stopping job for game %s", gameCode)
-        ps.Unsub(PUBLISHER_GAME_STATE, TOPIC_ACTIONS)
         ticker.Stop()
+
+        ps.Unsub(PUBLISHER_GAME_STATE, TOPIC_ACTIONS)
+        delete(gameStore, gameCode)
+        delete(gameStateStore, gameCode)
+        DeleteRoom(gameCode)
     }()
 
     latestActionTime := time.Now()
