@@ -4,6 +4,7 @@ import { GameActionId } from "../../common/gameTypes";
 import { getPlayerName } from "../../common/localStorage";
 import { getPlayerState, newPlayersHaveJoined, updateGameState, } from "./gameState";
 import { korigin } from "./globals";
+import { addMergedLevel } from "./level";
 import { addOtherPlayerSprite, adjustPosition } from "./players";
 
 interface GameOptions {
@@ -87,7 +88,7 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
     }
   });
 
-  addLevel([
+  addMergedLevel([
     "                           ",
     "     == ===============    ",
     "                      =    ",
@@ -98,14 +99,5 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
     "                      =    ",
     "     ==  ==============    ",
     "     ==                    ",
-  ], {
-    width: 64,
-    height: 64,
-    "=": () => [
-        sprite("steel"),
-        area(),
-        solid(),
-        "block"
-    ],
-  })
+  ], "=");
 }
