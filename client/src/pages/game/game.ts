@@ -1,8 +1,9 @@
-import kaboom, { KaboomCtx } from "kaboom";
+import kaboom from "kaboom";
 import { GameWebsocketClient } from "../../common/apiClients/gameApiClient";
 import { GameActionId } from "../../common/gameTypes";
 import { getPlayerName } from "../../common/localStorage";
 import { getPlayerState, newPlayersHaveJoined, updateGameState, } from "./gameState";
+import { korigin } from "./globals";
 import { addOtherPlayerSprite, adjustPosition } from "./players";
 
 interface GameOptions {
@@ -14,9 +15,6 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
   kaboom({
     canvas,
   });
-  // workaround for type conflict
-  const korigin = (origin as unknown as KaboomCtx["origin"]);
-
   loadRoot("https://kaboomjs.com/");
   loadSprite("bean", "sprites/bean.png");
   loadSprite("steel", "sprites/steel.png");
@@ -31,11 +29,13 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
     }
   });
 
+  const { position } = getPlayerState(getPlayerName() as string);
   const player = add([
     sprite("bean"),
-    pos(0, 0),
+    pos(position.x, position.y),
     area(),
     solid(),
+    korigin("center"),
     z(999),
   ]);
 

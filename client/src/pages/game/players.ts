@@ -1,7 +1,8 @@
 import { GameObj } from "kaboom";
 import { Vec2 } from "../../common/gameTypes";
 import { getPlayerName } from "../../common/localStorage";
-import { distance, getPlayerState, POSITION_TOLERANCE } from "./gameState";
+import { distance, getPlayerState, PLAYER_SPEED, POSITION_TOLERANCE } from "./gameState";
+import { korigin } from "./globals";
 
 const hasSprite: Record<string, boolean> = {};
 
@@ -9,15 +10,16 @@ export function addOtherPlayerSprite(playerName: string) {
   if (hasSprite[playerName] || playerName === getPlayerName()) {
     return;
   }
+  const { position } = getPlayerState(playerName);
   const player = add([
     sprite("bean"),
-    pos(0, 0),
+    pos(position.x, position.y),
     area(),
+    korigin("center"),
   ]);
   player.onUpdate(() => {
-    const { position, velocity } = getPlayerState(playerName);
-    adjustPosition(player, position)
-    player.move(velocity.x, velocity.y);
+    const { position } = getPlayerState(playerName);
+    player.moveTo(vec2(position.x, position.y), PLAYER_SPEED);
   });
   hasSprite[playerName] = true;
 }

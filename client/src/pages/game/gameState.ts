@@ -1,5 +1,6 @@
 import { GamePlayer, GameState, Vec2 } from "../../common/gameTypes";
 
+export const PLAYER_SPEED = 400;
 export const POSITION_TOLERANCE = 100;
 
 let prevNumPlayers = 0
