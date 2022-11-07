@@ -38,3 +38,13 @@ export interface GamePlayer {
 export interface GameState {
   players: Record<string, GamePlayer>;
 }
+
+export enum GameTile {
+  Empty = 0,
+  Block = 1,
+}
+export interface Game {
+  gameMap: {
+    tiles: GameTile[][];
+  }
+}

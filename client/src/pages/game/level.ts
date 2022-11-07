@@ -1,3 +1,5 @@
+import { GameTile } from "../../common/gameTypes";
+
 /**
  * Takes a level similar to addLevel and merges sprites
  * that are connected.
@@ -17,16 +19,21 @@ export function addMergedLevel(smap: string[], target: string){
     ]);
   })
 }
+// convert to kaboom.js style string level for easier debugging
+export function smapify(tiles: GameTile[][], blockSymbol: string): string[] {
+  return tiles.map(row => row.map(col => col === GameTile.Block ? blockSymbol : " ").join(""));
 
-interface Tile {
+}
+
+interface Block {
   x: number;
   y: number;
   width: number;
   height: number;
 }
 
-function mergeTiles(smap: string[], target: string): Tile[] {
-  const horizontallyMergedTiles: Tile[] = [];
+function mergeTiles(smap: string[], target: string): Block[] {
+  const horizontallyMergedTiles: Block[] = [];
   for (let i = 0; i < smap.length; i++) {
     let blockStart = -1;
     for (let j = 0; j < smap[i].length; j++) {
@@ -53,7 +60,7 @@ function mergeTiles(smap: string[], target: string): Tile[] {
   }
 
   // make an extra sweep to merge single tile columns
-  const verticallyMergedTiles: Tile[] = [];
+  const verticallyMergedTiles: Block[] = [];
   const hsort = horizontallyMergedTiles.sort((t1, t2) => t2.x - t1.x);
 
   let blockStart = -1;

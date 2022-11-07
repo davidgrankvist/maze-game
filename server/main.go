@@ -26,6 +26,7 @@ func main() {
     s.HandleFunc("/{roomCode}/start", api.StartGame).Methods("POST")
 
     s = r.PathPrefix("/api/games/{gameCode}").Subrouter()
+    s.HandleFunc("", api.GetGame).Methods("GET")
     s.HandleFunc("/{playerName}/ws", api.GameWs)
 
     printRoutes(r)

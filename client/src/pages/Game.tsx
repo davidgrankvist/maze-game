@@ -1,8 +1,13 @@
 import { useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router";
-import { GameWebsocketClient } from "../common/apiClients/gameApiClient";
-import { Room } from "../common/gameTypes";
+import { getGame } from "../common/apiClients/gameApiClient";
+import { GameWebsocketClient } from "../common/apiClients/gameWebsocketClient";
+import { isHttpError } from "../common/apiClients/httpErrors";
+import { ErrorPage } from "../common/components/ErrorPage";
+import { NotFoundErrorPage } from "../common/components/NotFoundErrorPage";
+import { Game, Room } from "../common/gameTypes";
 import { getPlayerName } from "../common/localStorage";
+import { useAsyncCall } from "../common/util/hooks";
 import { initGame } from "./game/game";
 
 interface GameProps {
@@ -18,9 +23,29 @@ function GameCheck({ initialRoom }: GameProps): JSX.Element {
     }
   }, [initialRoom.isGameTime]);
 
-  return initialRoom.isGameTime ? <GameCanvas /> : <div />;
+  return initialRoom.isGameTime ? <GameMapCheck /> : <div />;
 }
-function GameCanvas(): JSX.Element {
+
+function GameMapCheck(): JSX.Element {
+  const { roomCode } = useParams() as { roomCode: string};
+  const { result: gameResult, error, loading } = useAsyncCall(async () => {
+    return await getGame(roomCode);
+  });
+
+  if (loading) {
+    return <div />;
+  }
+
+  if (error || !gameResult) {
+    return isHttpError(404, error) ? <NotFoundErrorPage /> : <ErrorPage />
+  }
+  return <GameCanvas game={gameResult} />;
+}
+
+interface GameCanvasProps {
+  game: Game;
+}
+function GameCanvas({ game }: GameCanvasProps): JSX.Element {
   const { roomCode } = useParams() as { roomCode: string};
   const playerName = getPlayerName() as string;
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -37,7 +62,7 @@ function GameCanvas(): JSX.Element {
     socketRef.current = new GameWebsocketClient({ gameCode: roomCode, playerName });
 
     const socket = socketRef.current;
-    initGame({ canvas, socket });
+    initGame({ canvas, socket, game });
     canvas.focus();
 
     return () => {

@@ -1,6 +1,7 @@
 package api
 
 import (
+    "encoding/json"
     "log"
     "maze-game-server/core"
     "maze-game-server/svc"
@@ -19,6 +20,21 @@ type ActionGameMessage struct {
 type GameStateMessage struct {
     Topic string `json:"topic"`
     Payload core.GameState `json:"payload"`
+}
+
+func GetGame(w http.ResponseWriter, req *http.Request) {
+    vars := mux.Vars(req)
+    gameCode := vars["gameCode"]
+
+    room, err := svc.GetGame(gameCode)
+    if err != nil {
+        err := core.NewHttpErrorFromError(err)
+        http.Error(w, err.Message, err.Code)
+        return
+    }
+
+    w.Header().Add("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(&room)
 }
 
 

@@ -1,18 +1,19 @@
 import kaboom from "kaboom";
-import { GameWebsocketClient } from "../../common/apiClients/gameApiClient";
-import { GameActionId } from "../../common/gameTypes";
+import { GameWebsocketClient } from "../../common/apiClients/gameWebsocketClient";
+import { Game, GameActionId } from "../../common/gameTypes";
 import { getPlayerName } from "../../common/localStorage";
 import { getPlayerState, newPlayersHaveJoined, updateGameState, } from "./gameState";
 import { korigin } from "./globals";
-import { addMergedLevel } from "./level";
+import { addMergedLevel, smapify } from "./level";
 import { addOtherPlayerSprite, adjustPosition } from "./players";
 
 interface GameOptions {
   canvas: HTMLCanvasElement;
   socket: GameWebsocketClient;
+  game: Game;
 }
 
-export const initGame = ({ canvas, socket }: GameOptions) => {
+export const initGame = ({ canvas, socket, game }: GameOptions) => {
   kaboom({
     canvas,
   });
@@ -88,16 +89,7 @@ export const initGame = ({ canvas, socket }: GameOptions) => {
     }
   });
 
-  addMergedLevel([
-    "                           ",
-    "     == ===============    ",
-    "                      =    ",
-    "         ====              ",
-    "                      =    ",
-    "               =      =    ",
-    "==================  =======",
-    "                      =    ",
-    "     ==  ==============    ",
-    "     ==                    ",
-  ], "=");
+  const blockSymbol = "=";
+  const smap = smapify(game.gameMap.tiles, blockSymbol);
+  addMergedLevel(smap, blockSymbol);
 }
