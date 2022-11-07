@@ -4,7 +4,7 @@ import { Game, GameActionId } from "../../common/gameTypes";
 import { getPlayerName } from "../../common/localStorage";
 import { getPlayerState, newPlayersHaveJoined, updateGameState, } from "./gameState";
 import { korigin } from "./globals";
-import { addMergedLevel, smapify } from "./level";
+import { addMergedLevel } from "./level";
 import { addOtherPlayerSprite, adjustPosition } from "./players";
 
 interface GameOptions {
@@ -89,7 +89,5 @@ export const initGame = ({ canvas, socket, game }: GameOptions) => {
     }
   });
 
-  const blockSymbol = "=";
-  const smap = smapify(game.gameMap.tiles, blockSymbol);
-  addMergedLevel(smap, blockSymbol);
+  addMergedLevel(game.gameMap.tiles);
 }

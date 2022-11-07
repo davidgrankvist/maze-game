@@ -1,14 +1,15 @@
 import { GameTile } from "../../common/gameTypes";
 
 /**
- * Takes a level similar to addLevel and merges sprites
- * that are connected.
+ * Takes a set of tiles and spawns sprites on the positions
+ * marked as Block. Adjacent tiles are merged into one
+ * and rendered with the `tiled` option.
  *
  * The reason for this is that adding a lot of sprites is costly,
  * but rendering large sprites with a repeated image is cheap.
  */
-export function addMergedLevel(smap: string[], target: string){
-  const mergedTiles = mergeTiles(smap, target);
+export function addMergedLevel(map: GameTile[][]){
+  const mergedTiles = mergeTiles(map);
   mergedTiles.forEach(({ width, height, x, y }) => {
     add([
         sprite("steel", { width, height, tiled: true }),
@@ -19,11 +20,6 @@ export function addMergedLevel(smap: string[], target: string){
     ]);
   })
 }
-// convert to kaboom.js style string level for easier debugging
-export function smapify(tiles: GameTile[][], blockSymbol: string): string[] {
-  return tiles.map(row => row.map(col => col === GameTile.Block ? blockSymbol : " ").join(""));
-
-}
 
 interface Block {
   x: number;
@@ -32,68 +28,85 @@ interface Block {
   height: number;
 }
 
-function mergeTiles(smap: string[], target: string): Block[] {
-  const horizontallyMergedTiles: Block[] = [];
-  for (let i = 0; i < smap.length; i++) {
+/**
+ * Tile merge in two steps:
+ *
+ * 1. Merge horizontally, one row at a time. Skip isolated tiles.
+ * 2. Merge the remaining tiles vertically, one column at a time
+ *
+ * This simple approach is meant for maps with many thin walls, such as a maze.
+ *
+ */
+function mergeTiles(mat: GameTile[][]): Block[] {
+  const target = GameTile.Block;
+  const blocks: Block[] = [];
+  const shouldMergeVertically: Record<string, boolean> = {};
+
+  for (let i = 0; i < mat.length; i++) {
     let blockStart = -1;
-    for (let j = 0; j < smap[i].length; j++) {
-      const c = smap[i].charAt(j);
-      const cPrev = j === 0 ? "" : smap[i][j - 1];
-      const cNext = j + 1 < smap[i].length ? smap[i][j + 1] : "";
+    for (let j = 0; j < mat[0].length; j++) {
+      const b = mat[i][j];
+      const bPrev = j === 0 ? null : mat[i][j - 1];
+      const bNext = j + 1 < mat[i].length ? mat[i][j + 1] : null;
 
-      const isEnd = cNext !== target;
+      shouldMergeVertically[i + '-' + j] = false;
 
-      if (c === target && cPrev !== target) {
+      if (b !== target) {
+        continue;
+      }
+
+      if (bPrev !== target) {
         blockStart = j;
       }
 
-      if (c === target && isEnd){
-        const blockEnd = j;
-        horizontallyMergedTiles.push({
+      if (bNext === target) {
+        continue;
+      }
+
+      const blockEnd = j;
+      if (blockStart === blockEnd) {
+        shouldMergeVertically[i + '-' + j] = true;
+      } else {
+        blocks.push({
           x: blockStart * 64,
           y: i * 64,
           width: 64 * (blockEnd - blockStart + 1),
           height: 64,
-        })
+        });
       }
     }
   }
+  const isTarget = (b: GameTile | null, i: number, j: number) => {
+    return b === target && shouldMergeVertically[i + '-' + j];
+  }
+  for (let j = 0; j < mat[0].length; j++) {
+    let blockStart = -1;
+    for (let i = 0; i < mat.length; i++) {
+      const b = mat[i][j];
+      const bPrev = i === 0 ? null : mat[i - 1][j];
+      const bNext = i + 1 < mat.length ? mat[i + 1][j] : null;
 
-  // make an extra sweep to merge single tile columns
-  const verticallyMergedTiles: Block[] = [];
-  const hsort = horizontallyMergedTiles.sort((t1, t2) => t2.x - t1.x);
+      if (!isTarget(b, i, j)) {
+        continue;
+      }
 
-  let blockStart = -1;
-  let wTarget = 64;
-  let yMin = Infinity;
+      if (!isTarget(bPrev, i-1, j)) {
+        blockStart = i;
+      }
 
-  for (let i = 0; i < hsort.length; i++) {
-    const t = hsort[i];
-    const tPrev = i === 0 ? null : horizontallyMergedTiles[i - 1];
-    const tNext = i + 1 < horizontallyMergedTiles.length ? horizontallyMergedTiles[i + 1] : null;
+      if (isTarget(bNext, i+1, j)) {
+        continue;
+      }
 
-    const isEnd = tNext?.width !== wTarget || tNext?.x !== t.x || tNext?.y > t.y + 64;
-
-    if (t.width === wTarget && tPrev?.width !== wTarget) {
-      blockStart = i;
-    }
-
-    if (t.y < yMin) {
-      yMin = t.y;
-    }
-
-    if (t.width === wTarget && isEnd) {
       const blockEnd = i;
-      verticallyMergedTiles.push({
-        ...t,
-        y: yMin,
+      blocks.push({
+        x: j * 64,
+        y: blockStart * 64,
+        width: 64,
         height: 64 * (blockEnd - blockStart + 1),
       });
-      yMin = Infinity;
-    } else if (t.width !== wTarget) {
-      verticallyMergedTiles.push(t);
     }
   }
 
-  return verticallyMergedTiles;
+  return blocks;
 }
