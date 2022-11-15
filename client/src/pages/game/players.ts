@@ -12,14 +12,28 @@ export function addOtherPlayerSprite(playerName: string) {
   }
   const { position } = getPlayerState(playerName);
   const player = add([
-    sprite("bean"),
     pos(position.x, position.y),
-    area(),
+    sprite("hero", { anim: "idle" }),
+    area({ width: 12, height: 12, offset: vec2(0, 6) }),
+    scale(2),
     korigin("center"),
   ]);
   player.onUpdate(() => {
-    const { position } = getPlayerState(playerName);
+    const { position, velocity } = getPlayerState(playerName);
     player.moveTo(vec2(position.x, position.y), PLAYER_SPEED);
+
+    const isIdle = velocity.x === 0 && velocity.y === 0;
+    if (isIdle) {
+      if (player.curAnim() !== "idle") {
+        player.play("idle");
+      }
+    } else {
+      if (player.curAnim() !== "run") {
+        player.play("run");
+      }
+      const shouldFlipX = velocity.x < 0;
+      player.flipX(shouldFlipX);
+    }
   });
   hasSprite[playerName] = true;
 }

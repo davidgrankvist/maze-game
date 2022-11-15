@@ -17,9 +17,31 @@ export const initGame = ({ canvas, socket, game }: GameOptions) => {
   kaboom({
     canvas,
   });
-  loadRoot("https://kaboomjs.com/");
-  loadSprite("bean", "sprites/bean.png");
-  loadSprite("steel", "sprites/steel.png");
+  loadSprite("steel", "https://kaboomjs.com/sprites/steel.png");
+
+  loadSpriteAtlas("/sprites/dungeon.png", {
+    "hero": {
+      "x": 128,
+      "y": 196,
+      "width": 144,
+      "height": 28,
+      "sliceX": 9,
+      "anims": {
+        "idle": {
+          "from": 0,
+          "to": 3,
+          "speed": 3,
+          "loop": true
+        },
+        "run": {
+          "from": 4,
+          "to": 7,
+          "speed": 10,
+          "loop": true
+        },
+      }
+    },
+  });
 
   socket.subscribeGameState(gameState => {
     updateGameState(gameState);
@@ -33,9 +55,10 @@ export const initGame = ({ canvas, socket, game }: GameOptions) => {
 
   const { position } = getPlayerState(getPlayerName() as string);
   const player = add([
-    sprite("bean"),
     pos(position.x, position.y),
-    area(),
+    sprite("hero", { anim: "idle" }),
+    area({ width: 12, height: 12, offset: vec2(0, 6) }),
+    scale(2),
     solid(),
     korigin("center"),
     z(999),
@@ -88,6 +111,25 @@ export const initGame = ({ canvas, socket, game }: GameOptions) => {
       socket.publishActionById(GameActionId.MoveRightStop)
     }
   });
+  onKeyDown("a", () => {
+    player.flipX(true);
+  });
+  onKeyDown("d", () => {
+    player.flipX(false);
+  })
+  onKeyPress(["w", "a", "s", "d"], () => {
+    player.play("run")
+  })
+  onKeyRelease(["w", "a", "s", "d"], () => {
+    if (
+      !isKeyDown("w")
+      && !isKeyDown("a")
+      && !isKeyDown("s")
+      && !isKeyDown("d")
+    ) {
+      player.play("idle")
+    }
+  })
 
   addMergedLevel(game.gameMap.tiles);
 }
