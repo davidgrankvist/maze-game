@@ -46,3 +46,8 @@ The client has some trade-offs to balance smooth gameplay with the true server s
 The current player moves based on the latest received velocity, but will adjust its position if the difference with server state becomes too large. There is some delay between user input and new velocity, but the benefit is that there are fewer adjustments than if the player moves too freely.
 
 The simulated other players lag behind a little and move only based on the position from the server. One of the benefits of this is that they don't need client side collision detection. They can simply be ghosts that are slightly delayed, but with valid positions.
+
+### Tech stack
+The client is written in [TypeScript](https://www.typescriptlang.org/) and  uses [React](https://reactjs.org/) and [daisyUI](https://daisyui.com/) for the game lobby UI and [Kaboom](https://kaboomjs.com/) for the game canvas.
+
+The backend is written in [Go](https://go.dev/) and uses [Gorilla](https://www.gorillatoolkit.org/) for the REST and WebSocket APIs.
